@@ -18,8 +18,26 @@ interface AuthResponse {
 export const useAuthStore = defineStore('auth', () => {
   const token = useCookie<string | null>('auth_token')
   const user = useCookie<AuthUser | null>('auth_user')
+  const { public: { adminIds } } = useRuntimeConfig()
+
+  const adminIdList = computed(() =>
+    String(adminIds)
+      .split(',')
+      .map(id => Number(id.trim()))
+      .filter(id => !Number.isNaN(id))
+  )
 
   const isAuthenticated = computed(() => Boolean(token.value))
+
+  const isAdmin = computed(() => {
+    if (!user.value) return false
+    return user.value.role === 'admin' || adminIdList.value.includes(user.value.id)
+  })
+
+  const isHr = computed(() => {
+    if (!user.value) return false
+    return isAdmin.value || (user.value.role === 'hr' && user.value.subscribe === 'yes')
+  })
 
   function applyResponse(res: AuthResponse) {
     token.value = res.access_token
@@ -54,5 +72,14 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
-  return { token, user, isAuthenticated, login, register, logout }
+  return {
+    token,
+    user,
+    isAuthenticated,
+    isAdmin,
+    isHr,
+    login,
+    register,
+    logout
+  }
 })

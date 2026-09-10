@@ -28,12 +28,12 @@ async function submit() {
   try {
     if (isLogin.value) {
       await auth.login(email.value, password.value)
-      await navigateTo('/')
+      await navigateTo(auth.isAdmin ? '/admin' : auth.isHr ? '/hr' : '/')
     }
     else {
       await auth.register(email.value, password.value)
       notice.value = 'Регистрация успешна. Доступ к HR-функционалу появится после активации подписки администратором.'
-      await navigateTo('/')
+      await navigateTo(auth.isAdmin ? '/admin' : auth.isHr ? '/hr' : '/')
     }
   }
   catch (e: any) {
