@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://127.0.0.1:8000/',
-      adminIds: process.env.NUXT_PUBLIC_ADMIN_IDS ?? '1'
+      adminIds: '1'
     }
   }
 })

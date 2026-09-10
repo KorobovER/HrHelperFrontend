@@ -49,7 +49,7 @@ export const useHrStore = defineStore('hr', () => {
       const res = await $api<{ status: string, user: HrProfile }>(`/database/users/${userId}`)
       profile.value = res.user
       if (!selectedCompanyId.value && res.user.companies.length) {
-        selectedCompanyId.value = res.user.companies[0].id
+        selectedCompanyId.value = res.user.companies[0]?.id ?? null
       }
     }
     catch (e: any) {
@@ -152,6 +152,28 @@ export const useHrStore = defineStore('hr', () => {
     }
   }
 
+  async function importHHVacancy(hhUrl: string, userId?: number) {
+    error.value = ''
+    try {
+      const $api = useApi()
+      const auth = useAuthStore()
+      const targetUserId = userId ?? auth.user?.id
+      const res = await $api<{ status: string, message: string, company_id: number, company_name: string, vacancy_id: number, vacancy_name: string }>(
+        '/hh/import_vacancy',
+        {
+          method: 'POST',
+          body: { hh_url: hhUrl, user_id: targetUserId }
+        }
+      )
+      if (auth.user) await fetchProfile(auth.user.id)
+      return res
+    }
+    catch (e: any) {
+      error.value = extractError(e, 'Не удалось импортировать вакансию с hh.ru')
+      return null
+    }
+  }
+
   return {
     profile,
     companies,
@@ -169,6 +191,7 @@ export const useHrStore = defineStore('hr', () => {
     createVacancy,
     fetchQuestions,
     addQuestion,
-    generateShortUrl
+    generateShortUrl,
+    importHHVacancy
   }
 })
