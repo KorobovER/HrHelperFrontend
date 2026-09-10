@@ -1,0 +1,19 @@
+{
+  "name": "hr-helper-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview --host 0.0.0.0",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^1.0.2",
+    "nuxt": "^4.5.2",
+    "pinia": "^4.0.3",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  }
+}
