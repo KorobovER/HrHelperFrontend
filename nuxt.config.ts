@@ -5,7 +5,8 @@ export default defineNuxtConfig({
     host: '0.0.0.0'
   },
   modules: [
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@nuxtjs/tailwindcss'
   ],
   runtimeConfig: {
     public: {
