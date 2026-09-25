@@ -2,6 +2,8 @@ import type { UseFetchOptions } from 'nuxt/app'
 
 const applyAuth = (headers: HeadersInit | undefined): Headers => {
   const result = new Headers(headers)
+  // ngrok free tier отдаёт HTML-предупреждение вместо ответа без этого заголовка
+  result.set('ngrok-skip-browser-warning', '1')
   const token = useCookie<string | null>('auth_token')
   if (token.value) {
     result.set('Authorization', `Bearer ${token.value}`)

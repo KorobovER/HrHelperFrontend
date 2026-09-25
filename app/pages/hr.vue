@@ -18,14 +18,22 @@ const showVacancyForm = ref(false)
 const expandedVacancyId = ref<number | null>(null)
 const copiedVacancyId = ref<number | null>(null)
 const expandedCandidatesVacancyId = ref<number | null>(null)
-const activeAnalysisTab = ref<'videos' | 'videoAnalysis' | 'transcription' | 'audioAnalysis'>('videos')
+const expandedVideoIds = ref<Record<number, boolean>>({})
 
-const analysisTabs = [
-  { key: 'videos' as const, label: 'Видеоинтервью' },
-  { key: 'videoAnalysis' as const, label: 'Видео-анализ' },
-  { key: 'transcription' as const, label: 'Транскрипция' },
-  { key: 'audioAnalysis' as const, label: 'Аудио-анализ' }
-]
+function toggleVideoCard(id: number) {
+  expandedVideoIds.value = { ...expandedVideoIds.value, [id]: !expandedVideoIds.value[id] }
+}
+
+function questionForVideo(video: any, idx: number): string {
+  const direct = video.question_text ?? video.question
+  if (typeof direct === 'string' && direct.trim()) return direct
+  const questions: any[] = candidates.selectedCandidate?.questions ?? []
+  if (video.question_id) {
+    const found = questions.find(q => q.id === video.question_id)
+    if (found?.question) return found.question
+  }
+  return questions[idx]?.question ?? ''
+}
 
 const selectedAnalysis = computed(() => {
   if (!candidates.selectedCandidate) return null
@@ -110,30 +118,9 @@ async function toggleCandidates(vacancyId: number) {
 }
 
 async function openCandidateDetails(vacancyId: number, candidateId: number) {
-  activeAnalysisTab.value = 'videos'
+  expandedVideoIds.value = {}
   await candidates.fetchCandidate(vacancyId, candidateId)
   await candidates.fetchCandidateVideos(vacancyId, candidateId)
-}
-
-async function switchAnalysisTab(tab: 'videos' | 'videoAnalysis' | 'transcription' | 'audioAnalysis') {
-  activeAnalysisTab.value = tab
-  if (!candidates.selectedCandidate) return
-  const vacancyId = candidates.selectedCandidate.vacancy_id
-  const candidateId = candidates.selectedCandidate.id
-  switch (tab) {
-    case 'videos':
-      await candidates.fetchCandidateVideos(vacancyId, candidateId)
-      break
-    case 'videoAnalysis':
-      await candidates.fetchVideoAnalysis(vacancyId, candidateId)
-      break
-    case 'transcription':
-      await candidates.fetchTranscription(vacancyId, candidateId)
-      break
-    case 'audioAnalysis':
-      await candidates.fetchAudioAnalysis(vacancyId, candidateId)
-      break
-  }
 }
 
 function closeCandidateDetails() {
@@ -223,92 +210,50 @@ function onLogout() {
 
             <div>
               <h4 class="mb-2 text-sm font-semibold text-blue-900">Анализ видеоинтервью</h4>
-              <div class="mb-3 flex flex-wrap gap-2">
-                <button
-                  v-for="tab in analysisTabs"
-                  :key="tab.key"
-                  type="button"
-                  class="rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                  :class="activeAnalysisTab === tab.key ? 'bg-blue-600 text-white' : 'border border-blue-200 text-blue-600 hover:bg-blue-50'"
-                  @click="switchAnalysisTab(tab.key)"
-                >
-                  {{ tab.label }}
-                </button>
-              </div>
-
               <div v-if="selectedAnalysis?.loading" class="text-sm text-blue-500">Загрузка…</div>
               <template v-else>
-                <div v-if="activeAnalysisTab === 'videos'" class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3">
                   <div
                     v-for="(video, idx) in selectedAnalysis?.videos"
                     :key="video.id ?? idx"
                     class="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900"
                   >
-                    <div class="font-semibold">Видео #{{ idx + 1 }}</div>
-                    <div class="mt-1 text-xs text-blue-500">
-                      ID: {{ video.id ?? '-' }}
-                      <template v-if="video.created_at">· {{ video.created_at }}</template>
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <div class="font-semibold">Видео #{{ idx + 1 }}</div>
+                        <div class="mt-1 text-xs text-blue-500">
+                          ID: {{ video.id ?? '-' }}
+                          <template v-if="video.created_at">· {{ video.created_at }}</template>
+                        </div>
+                        <div
+                          v-if="questionForVideo(video, idx)"
+                          class="mt-1 text-xs font-medium italic text-blue-700"
+                        >
+                          Вопрос: {{ questionForVideo(video, idx) }}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="shrink-0 rounded-lg border border-blue-200 px-2.5 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-100"
+                        @click="toggleVideoCard(video.id ?? idx)"
+                      >
+                        {{ expandedVideoIds[video.id ?? idx] ? 'Скрыть' : 'Показать' }}
+                      </button>
                     </div>
-                    <details class="mt-2">
-                      <summary class="cursor-pointer text-xs text-blue-700">Детали видео</summary>
-                      <pre class="mt-2 whitespace-pre-wrap rounded-lg bg-white p-2 text-xs text-blue-900">{{ JSON.stringify(video, null, 2) }}</pre>
-                    </details>
+                    <template v-if="expandedVideoIds[video.id ?? idx]">
+                      <div class="mt-2">
+                        <VideoPlayer v-if="video.id" :video-id="video.id" />
+                      </div>
+                      <div class="mt-2">
+                        <VideoInterviewDetails :video="video" />
+                      </div>
+                      <details class="mt-2">
+                        <summary class="cursor-pointer text-xs text-blue-700">Сырые данные (JSON)</summary>
+                        <pre class="mt-2 whitespace-pre-wrap rounded-lg bg-white p-2 text-xs text-blue-900">{{ JSON.stringify(video, null, 2) }}</pre>
+                      </details>
+                    </template>
                   </div>
                   <p v-if="!selectedAnalysis?.videos?.length" class="text-sm text-blue-400">Нет видеоинтервью.</p>
-                </div>
-
-                <div v-else-if="activeAnalysisTab === 'videoAnalysis'" class="flex flex-col gap-3">
-                  <div
-                    v-for="(item, idx) in selectedAnalysis?.videoAnalysis"
-                    :key="item.video_id ?? idx"
-                    class="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900"
-                  >
-                    <div class="font-semibold">Анализ видео #{{ idx + 1 }}</div>
-                    <div class="mt-1 text-xs text-blue-500">video_id: {{ item.video_id ?? '-' }}</div>
-                    <details class="mt-2">
-                      <summary class="cursor-pointer text-xs text-blue-700">Детали анализа</summary>
-                      <pre class="mt-2 whitespace-pre-wrap rounded-lg bg-white p-2 text-xs text-blue-900">{{ JSON.stringify(item, null, 2) }}</pre>
-                    </details>
-                  </div>
-                  <p v-if="!selectedAnalysis?.videoAnalysis?.length" class="text-sm text-blue-400">Нет видео-анализа.</p>
-                </div>
-
-                <div v-else-if="activeAnalysisTab === 'transcription'" class="flex flex-col gap-3">
-                  <div
-                    v-for="(item, idx) in selectedAnalysis?.transcription"
-                    :key="item.video_id ?? idx"
-                    class="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900"
-                  >
-                    <div class="font-semibold">Транскрипция #{{ idx + 1 }}</div>
-                    <div class="mt-1 text-xs text-blue-500">video_id: {{ item.video_id ?? '-' }}</div>
-                    <div
-                      v-if="typeof item.transcription === 'string'"
-                      class="mt-2 max-h-40 overflow-y-auto rounded-lg bg-white p-3 text-sm text-blue-800"
-                    >
-                      {{ item.transcription }}
-                    </div>
-                    <details v-else class="mt-2">
-                      <summary class="cursor-pointer text-xs text-blue-700">Детали транскрипции</summary>
-                      <pre class="mt-2 whitespace-pre-wrap rounded-lg bg-white p-2 text-xs text-blue-900">{{ JSON.stringify(item.transcription, null, 2) }}</pre>
-                    </details>
-                  </div>
-                  <p v-if="!selectedAnalysis?.transcription?.length" class="text-sm text-blue-400">Нет транскрипций.</p>
-                </div>
-
-                <div v-else-if="activeAnalysisTab === 'audioAnalysis'" class="flex flex-col gap-3">
-                  <div
-                    v-for="(item, idx) in selectedAnalysis?.audioAnalysis"
-                    :key="item.video_id ?? idx"
-                    class="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900"
-                  >
-                    <div class="font-semibold">Аудио-анализ #{{ idx + 1 }}</div>
-                    <div class="mt-1 text-xs text-blue-500">video_id: {{ item.video_id ?? '-' }}</div>
-                    <details class="mt-2">
-                      <summary class="cursor-pointer text-xs text-blue-700">Детали аудио-анализа</summary>
-                      <pre class="mt-2 whitespace-pre-wrap rounded-lg bg-white p-2 text-xs text-blue-900">{{ JSON.stringify(item, null, 2) }}</pre>
-                    </details>
-                  </div>
-                  <p v-if="!selectedAnalysis?.audioAnalysis?.length" class="text-sm text-blue-400">Нет аудио-анализа.</p>
                 </div>
               </template>
             </div>
