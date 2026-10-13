@@ -7,6 +7,7 @@ interface CandidateAnalysisTab {
   videoAnalysis: any[]
   transcription: any[]
   audioAnalysis: any[]
+  resume: any | null
   loading: boolean
 }
 
@@ -25,7 +26,7 @@ export const useCandidatesStore = defineStore('candidates', () => {
   function ensureAnalysisTab(vacancyId: number, candidateId: number): CandidateAnalysisTab {
     const key = getAnalysisKey(vacancyId, candidateId)
     if (!analysis.value[key]) {
-      analysis.value[key] = { videos: [], videoAnalysis: [], transcription: [], audioAnalysis: [], loading: false }
+      analysis.value[key] = { videos: [], videoAnalysis: [], transcription: [], audioAnalysis: [], resume: null, loading: false }
     }
     return analysis.value[key]
   }
@@ -73,6 +74,21 @@ export const useCandidatesStore = defineStore('candidates', () => {
     }
     catch (e: any) {
       error.value = extractError(e, 'Не удалось загрузить данные кандидата')
+    }
+  }
+
+  async function fetchResumeAnalysis(vacancyId: number, candidateId: number) {
+    const tab = ensureAnalysisTab(vacancyId, candidateId)
+    try {
+      const $api = useApi()
+      const res = await $api<any>(`/candidates/candidate/${candidateId}/resume-analysis`)
+      tab.resume = res
+    }
+    catch (e: any) {
+      if (e?.response?.status !== 404) {
+        error.value = extractError(e, 'Не удалось загрузить анализ резюме')
+      }
+      tab.resume = null
     }
   }
 
@@ -154,6 +170,7 @@ export const useCandidatesStore = defineStore('candidates', () => {
     fetchCandidatesCount,
     fetchAllCandidates,
     fetchCandidate,
+    fetchResumeAnalysis,
     fetchCandidateVideos,
     fetchVideoAnalysis,
     fetchTranscription,
