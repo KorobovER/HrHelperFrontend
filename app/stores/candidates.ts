@@ -77,6 +77,16 @@ export const useCandidatesStore = defineStore('candidates', () => {
     }
   }
 
+  async function openCandidate(vacancyId: number, candidateId: number) {
+    await fetchCandidate(vacancyId, candidateId)
+    fetchResumeAnalysis(vacancyId, candidateId)
+    await fetchCandidateVideos(vacancyId, candidateId)
+  }
+
+  function closeCandidate() {
+    selectedCandidate.value = null
+  }
+
   async function fetchResumeAnalysis(vacancyId: number, candidateId: number) {
     const tab = ensureAnalysisTab(vacancyId, candidateId)
     try {
@@ -170,6 +180,8 @@ export const useCandidatesStore = defineStore('candidates', () => {
     fetchCandidatesCount,
     fetchAllCandidates,
     fetchCandidate,
+    openCandidate,
+    closeCandidate,
     fetchResumeAnalysis,
     fetchCandidateVideos,
     fetchVideoAnalysis,

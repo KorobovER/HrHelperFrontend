@@ -51,11 +51,11 @@ const html = computed(() => {
 }
 .md :deep(hr) {
   margin: 0.75rem 0;
-  border-color: #dbeafe;
+  border-color: #E8E8FA;
 }
 .md :deep(code) {
   border-radius: 0.25rem;
-  background: #eff6ff;
+  background: #F5F5FD;
   padding: 0.1rem 0.3rem;
   font-size: 0.75rem;
 }
@@ -64,9 +64,9 @@ const html = computed(() => {
 }
 .md :deep(blockquote) {
   margin: 0.375rem 0;
-  border-left: 3px solid #bfdbfe;
+  border-left: 3px solid #D5D4F5;
   padding-left: 0.75rem;
-  color: #1d4ed8;
+  color: #4F4AB6;
 }
 .md :deep(table) {
   margin: 0.375rem 0;
@@ -75,7 +75,7 @@ const html = computed(() => {
 }
 .md :deep(th),
 .md :deep(td) {
-  border: 1px solid #dbeafe;
+  border: 1px solid #E8E8FA;
   padding: 0.25rem 0.5rem;
   text-align: left;
 }

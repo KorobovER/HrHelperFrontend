@@ -48,7 +48,11 @@ async function submit() {
 <template>
   <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 px-6">
     <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-blue-600/10">
-      <h1 class="mb-6 text-center text-3xl font-bold text-blue-700">HR Helper</h1>
+      <h1 class="mb-6 text-center">
+        <span class="inline-flex rounded-xl bg-blue-600 px-5 py-3">
+          <img src="/logo-white.png" alt="STAF.IO" class="h-6 w-auto">
+        </span>
+      </h1>
 
       <div class="mb-6 flex gap-2 rounded-xl bg-blue-50 p-1">
         <button

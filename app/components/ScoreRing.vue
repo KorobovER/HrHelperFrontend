@@ -4,15 +4,10 @@ const props = withDefaults(defineProps<{
   size?: number
 }>(), { size: 56 })
 
-const color = computed(() => {
-  if (props.score === null) return '#93c5fd'
-  if (props.score >= 70) return '#22c55e'
-  if (props.score >= 40) return '#f59e0b'
-  return '#ef4444'
-})
+const color = computed(() => scoreColor(props.score))
 
 const ringBg = computed(() =>
-  `conic-gradient(${color.value} ${props.score ?? 0}%, #dbeafe ${props.score ?? 0}%)`
+  `conic-gradient(${color.value} ${props.score ?? 0}%, #E8E8FA ${props.score ?? 0}%)`
 )
 </script>
 
