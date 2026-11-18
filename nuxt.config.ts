@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      apiBase: 'https://t-shirt-closable-tantrum.ngrok-free.dev/',
+      apiBase: 'http://51.250.95.51:8000',
       adminIds: '1'
     }
   }
