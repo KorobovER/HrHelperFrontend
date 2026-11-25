@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      apiBase: 'http://51.250.95.51:8000',
+      apiBase: 'https://stafio.site',
       adminIds: '1'
     }
   }
